@@ -37,12 +37,13 @@ three questions with numbers you can verify:
 ## Install
 
 ```bash
-pi install git:github.com/lantrinh1999/pi-deepseek-cache
+pi install npm:pi-cache-insights
 ```
 
-Or from a local checkout:
+Or directly from the repo, or a local checkout:
 
 ```bash
+pi install git:github.com/lantrinh1999/pi-deepseek-cache
 pi install ./path/to/pi-deepseek-cache
 ```
 

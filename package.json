@@ -1,7 +1,8 @@
 {
-  "name": "@lantrinh1999/pi-cache-insights",
+  "name": "pi-cache-insights",
   "version": "1.0.0",
   "description": "Prefix-cache telemetry for pi: hit rate, reused tokens, real cost saved, per-turn trend with cache-break detection, and optional OpenRouter upstream pinning",
+  "type": "module",
   "keywords": [
     "pi-package",
     "pi-extension",
@@ -12,6 +13,7 @@
     "openrouter",
     "telemetry"
   ],
+  "homepage": "https://github.com/lantrinh1999/pi-deepseek-cache#readme",
   "license": "MIT",
   "author": "Robin Quintero (original pi-deepseek-cache), fork maintained by lantrinh1999",
   "contributors": [
@@ -52,12 +54,14 @@
   "engines": {
     "node": ">=20"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc -p tsconfig.json",
     "check": "npm run typecheck && npm run test",
     "smoke": "node --experimental-strip-types ./scripts/smoke.ts"
-  },
-  "type": "module"
+  }
 }
