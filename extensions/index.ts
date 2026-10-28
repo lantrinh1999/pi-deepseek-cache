@@ -312,6 +312,7 @@ export default function (pi: ExtensionAPI) {
         userRouting: userRoutingSeen,
       },
       statusLine: config.statusLine,
+      detail: config.detail,
     };
   };
 
@@ -462,11 +463,20 @@ export default function (pi: ExtensionAPI) {
 
     while (true) {
       const next = await ctx.ui.custom<OverlayAction>(
-        (_tui, theme: Theme, keybindings, done) => {
+        (tui, theme: Theme, keybindings, done) => {
           const keys = matcher(keybindings);
+          // Fit both overlays to the terminal instead of letting them clip.
+          const maxRows = tui.terminal.rows;
           return view === "graph"
-            ? new GraphOverlay(theme, keys, done, statsView.history)
-            : new StatsOverlay(theme, keys, done, statsView);
+            ? new GraphOverlay(
+                theme,
+                keys,
+                done,
+                statsView.history,
+                statsView.detail,
+                maxRows,
+              )
+            : new StatsOverlay(theme, keys, done, statsView, maxRows);
         },
         OVERLAY_OPTIONS,
       );
@@ -546,12 +556,12 @@ export default function (pi: ExtensionAPI) {
       if (!trimmed) {
         ctx.ui.notify(
           [
-            `statusLine=${config.statusLine}`,
-            `pinOpenRouter=${config.pinOpenRouter}`,
-            `pinAllowFallbacks=${config.pinAllowFallbacks}`,
+            "cache-insights settings",
+            `statusLine=${config.statusLine}   detail=${config.detail}`,
+            `pinOpenRouter=${config.pinOpenRouter}   pinAllowFallbacks=${config.pinAllowFallbacks}`,
             `pinOrder=${config.pinOrder?.join(",") ?? "(auto)"}`,
             `store=${storeDir}`,
-          ].join(" · "),
+          ].join("\n"),
           "info",
         );
         return;
@@ -567,9 +577,9 @@ export default function (pi: ExtensionAPI) {
       updateStatus(ctx);
       const summary = [
         `statusLine=${config.statusLine}`,
-        `pinOpenRouter=${config.pinOpenRouter}`,
-        `pinAllowFallbacks=${config.pinAllowFallbacks}`,
-        `pinOrder=${config.pinOrder?.join(",") ?? "(auto)"}`,
+        `detail=${config.detail}`,
+        `pin=${config.pinOpenRouter ? "on" : "off"}`,
+        `fallbacks=${config.pinAllowFallbacks ? "on" : "off"}`,
       ].join(" · ");
       ctx.ui.notify(
         `cache-insights: ${summary}${saved ? "" : " (could not persist — check ~/.pi permissions)"}`,

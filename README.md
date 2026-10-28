@@ -59,8 +59,14 @@ and any OpenAI-compatible endpoint that returns `prompt_cache_hit_tokens` or
 |---|---|
 | `/cache-stats` | Overlay with this session's hit rate, reused tokens, cache writes, turns, cost saved, and an aggregate across stored sessions. `g` switches to the graph, `esc` closes. |
 | `/cache-graph` | Per-turn hit rate sparkline with min/avg/max, plus the turns where the cache broke. `s` switches back to stats. |
+
+Both overlays fit the terminal: on short screens they drop the least important
+blocks (pin status, then the model list, then the cross-session aggregate) rather
+than letting the box clip its borders. With `detail=full` the stats overlay also
+shows output tokens and the cost actually paid, every model in the session, and
+`/cache-graph` adds a per-turn table.
 | `/cache-reset` | Forget this session. `/cache-reset all` deletes every stored session (with a confirmation dialog). |
-| `/cache-config` | Print current settings, or change them: `/cache-config statusLine=off pinOpenRouter=on`. |
+| `/cache-config` | Print current settings, or change them: `/cache-config detail=full`, `statusLine=off`, `pinOpenRouter=on`. |
 
 The footer shows a compact `⚡ 97.4%` line for the current session. It turns
 into `⚡ 12.0% ↓` when the last turn lost the prefix cache.
@@ -72,6 +78,7 @@ into `⚡ 12.0% ↓` when the last turn lost the prefix cache.
 | Key | Default | Meaning |
 |---|---|---|
 | `statusLine` | `on` | Show the `⚡` hit-rate line in pi's footer. |
+| `detail` | `compact` | `full` adds output tokens, cost paid, every model in the session, up to 8 detected breaks, and a per-turn table in `/cache-graph`. Set it with `/cache-config detail=full`. |
 | `pinOpenRouter` | `off` | Pin OpenRouter requests to one cache-capable upstream (see below). |
 | `pinAllowFallbacks` | `on` | Let OpenRouter fall back when the pinned upstream fails. Set `off` only for strict pinning. |
 | `pinOrder` | `(auto)` | Comma- or pipe-separated upstream slugs to prefer, e.g. `pinOrder=deepinfra|parasail`. Auto = cheapest cache-capable upstream. |

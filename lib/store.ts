@@ -93,9 +93,13 @@ export function emptyTotals(): Totals {
 
 // ─── Config ────────────────────────────────────────────────────
 
+export type DetailLevel = "compact" | "full";
+
 export interface Config {
   /** Show the per-session hit rate in pi's footer. */
   statusLine: boolean;
+  /** `full` shows every tracked number: output, cost paid, all models, per-turn table. */
+  detail: DetailLevel;
   /** Pin OpenRouter requests to one cache-capable upstream. */
   pinOpenRouter: boolean;
   /** Let OpenRouter fall back when the pinned upstream fails. */
@@ -106,6 +110,7 @@ export interface Config {
 
 export const DEFAULT_CONFIG: Config = {
   statusLine: true,
+  detail: "compact",
   pinOpenRouter: false,
   pinAllowFallbacks: true,
   pinOrder: null,
@@ -122,6 +127,7 @@ export function normalizeConfig(raw: unknown): Config {
   const order = source.pinOrder;
   return {
     statusLine: asBool(source.statusLine, DEFAULT_CONFIG.statusLine),
+    detail: source.detail === "full" ? "full" : "compact",
     pinOpenRouter: asBool(source.pinOpenRouter, DEFAULT_CONFIG.pinOpenRouter),
     pinAllowFallbacks: asBool(
       source.pinAllowFallbacks,
@@ -143,6 +149,7 @@ export interface ConfigUpdate {
 
 const CONFIG_KEYS = new Set([
   "statusline",
+  "detail",
   "pinopenrouter",
   "pinallowfallbacks",
   "pinorder",
@@ -175,8 +182,16 @@ export function applyConfigArgs(current: Config, args: string): ConfigUpdate {
     const value = part.slice(eq + 1).trim();
     if (!CONFIG_KEYS.has(key)) {
       return {
-        error: `unknown key "${key}" (use statusLine, pinOpenRouter, pinAllowFallbacks, pinOrder)`,
+        error: `unknown key "${key}" (use statusLine, detail, pinOpenRouter, pinAllowFallbacks, pinOrder)`,
       };
+    }
+    if (key === "detail") {
+      const level = value.toLowerCase();
+      if (level !== "full" && level !== "compact") {
+        return { error: `key "detail" expects full or compact, got "${value}"` };
+      }
+      next.detail = level;
+      continue;
     }
     if (key === "pinorder") {
       const items = value

@@ -4,6 +4,7 @@ import {
   GraphOverlay,
   STATS_WIDTH,
   StatsOverlay,
+  fitSections,
   graphLines,
   statsLines,
   type OverlayAction,
@@ -189,12 +190,35 @@ describe("statsLines", () => {
     }
   });
 
-  it("lists multiple models compactly", () => {
+  it("lists multiple models, one per row", () => {
     const text = body(
       statsLines(view({ models: ["a/one", "b/two", "c/three"] }), 64, plain),
     );
     expect(text).toMatch(/Models\s+3 in this session/);
-    expect(text).toMatch(/a\/one, b\/two, c\/three/);
+    expect(text).toMatch(/a\/one/);
+    expect(text).toMatch(/b\/two/);
+    expect(text).toMatch(/c\/three/);
+  });
+
+  it("shows every tracked number in full detail", () => {
+    const compact = body(statsLines(view(), 64, plain));
+    expect(compact).not.toMatch(/Output/);
+    expect(compact).not.toMatch(/Cost paid/);
+
+    const full = body(statsLines(view({ detail: "full" }), 64, plain));
+    expect(full).toMatch(/Output\s+5K tokens/);
+    expect(full).toMatch(/Cost paid\s+\$0\.060/);
+    expect(full).toMatch(/Saved\s+\$0\.270 at list price/);
+    assertBoxIntegrity(statsLines(view({ detail: "full" }), 64, ansi), "full");
+  });
+
+  it("lists every model in full detail and caps the list", () => {
+    const models = Array.from({ length: 9 }, (_, index) => `p/model-${index}`);
+    const full = body(
+      statsLines(view({ detail: "full", models }), 64, plain),
+    );
+    expect(full).toMatch(/p\/model-5/);
+    expect(full).toMatch(/\+3 more/);
   });
 });
 
@@ -218,6 +242,17 @@ describe("graphLines", () => {
     expect(text).toMatch(/[▁▂▃▄▅▆▇█]{2,}/);
   });
 
+  it("adds a per-turn table in full detail", () => {
+    const compact = body(graphLines(history, 64, plain));
+    expect(compact).not.toMatch(/turn\s+hit\s+reused\s+fresh/);
+
+    const full = graphLines(history, 64, plain, { detail: "full" });
+    const text = body(full);
+    expect(text).toMatch(/turn\s+hit\s+reused\s+fresh/);
+    expect(text).toMatch(/\b4\s+5\.0%/);
+    assertBoxIntegrity(full, "full graph");
+  });
+
   it("says so when nothing broke", () => {
     const steady: HistoryPoint[] = [0.9, 0.92, 0.95].map((rate, index) => ({
       turn: index + 1,
@@ -236,6 +271,45 @@ describe("graphLines", () => {
 
   it("survives a single point without dividing by zero", () => {
     assertBoxIntegrity(graphLines(history.slice(0, 1), 28, ansi), "one point");
+  });
+});
+
+describe("height fitting", () => {
+  it("drops low-priority rows first", () => {
+    const kept = fitSections(
+      [
+        { priority: 100, lines: ["title"] },
+        { priority: 30, lines: ["chrome-1", "chrome-2"] },
+        { priority: 90, lines: ["total"] },
+        { priority: 40, lines: ["aggregate"] },
+      ],
+      3,
+    );
+    expect(kept).toContain("title");
+    expect(kept).toContain("total");
+    expect(kept).not.toContain("chrome-1");
+  });
+
+  it("keeps the box intact when the terminal is short", () => {
+    const full = view({ detail: "full" });
+    for (const rows of [12, 18, 24]) {
+      const lines = statsLines(full, 64, plain, rows);
+      expect(lines.length).toBeLessThanOrEqual(rows);
+      assertBoxIntegrity(lines, `stats maxRows=${rows}`);
+      expect(body(lines)).toMatch(/Prefix cache/);
+    }
+  });
+
+  it("trims the graph table before the chart", () => {
+    const lines = graphLines(history, 64, plain, {
+      detail: "full",
+      maxRows: 14,
+    });
+    expect(lines.length).toBeLessThanOrEqual(14);
+    const text = body(lines);
+    expect(text).toMatch(/Cache hit rate per turn/);
+    expect(text).not.toMatch(/turn\s+hit\s+reused\s+fresh/);
+    assertBoxIntegrity(lines, "trimmed graph");
   });
 });
 

@@ -95,6 +95,24 @@ describe("config", () => {
     expect(cleared.config?.pinOrder).toBeNull();
   });
 
+  it("parses the detail level", () => {
+    expect(applyConfigArgs(DEFAULT_CONFIG, "detail=full").config?.detail).toBe(
+      "full",
+    );
+    expect(
+      applyConfigArgs({ ...DEFAULT_CONFIG, detail: "full" }, "detail=compact")
+        .config?.detail,
+    ).toBe("compact");
+    expect(applyConfigArgs(DEFAULT_CONFIG, "detail=loud").error).toMatch(
+      /expects full or compact/,
+    );
+  });
+
+  it("defaults unknown detail levels to compact", () => {
+    expect(normalizeConfig({ detail: "verbose" }).detail).toBe("compact");
+    expect(normalizeConfig({ detail: "full" }).detail).toBe("full");
+  });
+
   it("rejects unknown keys and non-boolean values", () => {
     expect(applyConfigArgs(DEFAULT_CONFIG, "nope=1").error).toMatch(/unknown key/);
     expect(applyConfigArgs(DEFAULT_CONFIG, "statusLine=maybe").error).toMatch(
