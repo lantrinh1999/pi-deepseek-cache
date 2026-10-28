@@ -1,27 +1,39 @@
 {
-  "name": "@rohaquinlop/pi-deepseek-cache",
-  "version": "0.6.0",
-  "description": "Prefix cache optimization for pi — DeepSeek and Xiaomi MiMo. Date/CWD freeze, hit-rate telemetry, cache-friendly compaction, and TUI overlays",
-  "keywords": ["pi-package", "deepseek", "mimo", "cache", "prefix-cache", "coding-agent", "extension"],
+  "name": "@lantrinh1999/pi-cache-insights",
+  "version": "1.0.0",
+  "description": "Prefix-cache telemetry for pi: hit rate, reused tokens, real cost saved, per-turn trend with cache-break detection, and optional OpenRouter upstream pinning",
+  "keywords": [
+    "pi-package",
+    "pi-extension",
+    "cache",
+    "prefix-cache",
+    "prompt-cache",
+    "deepseek",
+    "openrouter",
+    "telemetry"
+  ],
   "license": "MIT",
-  "author": "rohaquinlop",
+  "author": "Robin Quintero (original pi-deepseek-cache), fork maintained by lantrinh1999",
+  "contributors": [
+    "Robin Quintero",
+    "lantrinh1999"
+  ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rohaquinlop/pi-deepseek-cache.git"
+    "url": "git+https://github.com/lantrinh1999/pi-deepseek-cache.git"
   },
-  "files": ["extensions/", "lib/", "README.md"],
+  "bugs": {
+    "url": "https://github.com/lantrinh1999/pi-deepseek-cache/issues"
+  },
+  "files": [
+    "extensions/",
+    "lib/",
+    "README.md",
+    "LICENSE"
+  ],
   "pi": {
-    "extensions": ["./extensions/index.ts"],
-    "appliesToModels": [
-      "deepseek-*",
-      "deepseek",
-      "*/deepseek-*",
-      "mimo-*",
-      "*/mimo-*",
-      "xiaomi",
-      "xiaomi-token-plan-ams",
-      "xiaomi-token-plan-cn",
-      "xiaomi-token-plan-sgp"
+    "extensions": [
+      "./extensions/index.ts"
     ]
   },
   "peerDependencies": {
@@ -29,11 +41,23 @@
     "@earendil-works/pi-coding-agent": "*",
     "@earendil-works/pi-tui": "*"
   },
+  "devDependencies": {
+    "@earendil-works/pi-ai": "1.4.0",
+    "@earendil-works/pi-coding-agent": "1.4.0",
+    "@earendil-works/pi-tui": "1.4.0",
+    "@types/node": "^22.13.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.2.0"
+  },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "typecheck": "tsc -p tsconfig.json",
+    "check": "npm run typecheck && npm run test",
+    "smoke": "node --experimental-strip-types ./scripts/smoke.ts"
   },
-  "devDependencies": {
-    "vitest": "^3.2.0"
-  }
+  "type": "module"
 }
